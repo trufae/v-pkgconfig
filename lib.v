@@ -127,6 +127,16 @@ fn (mut pc PkgConfig) resolve(pkgname string) ?string {
 	return error('Cannot find "$pkgname" pkgconfig file')
 }
 
+pub fn atleast(v string) bool {
+	v0 := semver.from(pkgconfig.version) or {
+		return false
+	}
+	v1 := semver.from(v) or {
+		return false
+	}
+	return v0.gt(v1)
+}
+
 pub fn (mut pc PkgConfig) atleast(v string) bool {
 	v0 := semver.from(pc.version) or {
 		return false

@@ -22,6 +22,7 @@ struct Options {
 	variables         bool
 	requires          bool
 	atleast           string
+	atleastpc         string
 	exactversion      string
 	version           bool
 	cflags            bool
@@ -131,6 +132,12 @@ fn (mut m Main) run() ?string {
 		}
 		return res
 	}
+	if opt.atleastpc != '' {
+		if pkgconfig.atleast(opt.atleastpc) {
+			return error('version mismatch')
+		}
+		return res
+	}
 	if opt.variables {
 		for k, _ in pc.vars {
 			res += '$k\n'
@@ -199,6 +206,7 @@ fn parse_options(mut fp flag.FlagParser) &Options {
 		variables: fp.bool('print-variables', `V`, false, 'display variable names')
 		requires: fp.bool('print-requires', `r`, false, 'display requires of the module')
 		atleast: fp.string('atleast-version', `a`, '', 'return 0 if pkg version is at least the given one')
+		atleastpc: fp.string('atleast-pkgconfig-version', `A`, '', 'return 0 if pkgconfig version is at least the given one')
 		exactversion: fp.string('exact-version', ` `, '', 'return 0 if pkg version is at least the given one')
 		version: fp.bool('version', `v`, false, 'show version of this tool')
 		cflags: fp.bool('cflags', `c`, false, 'output all pre-processor and compiler flags')
