@@ -63,6 +63,7 @@ Using the API from the V repl
 
 ```
 >>> import trufae.pkgconfig
+>>> opt := pkgconfig.Options{}
 >>> pc := pkgconfig.load('r_core', opt) or { panic(err) }
 >>> pc.libs
 ['-L/usr/local/lib', '-lr_core', '-lr_config', '-lr_util', '', '-ldl', '-lr_cons', '-lr_io', '-lr_socket', '-lr_hash', '-lr_crypto', '-lr_flag', '-lr_asm', '-lr_syscall', '-lr_lang', '-lr_parse', '-lr_reg', '-lr_debug', '-lr_anal', '-lr_search', '-lr_bp', '-lr_egg', '-lr_bin', '-lr_magic', '-lr_fs']

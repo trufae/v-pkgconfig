@@ -33,6 +33,17 @@ pub mut:
 	modname     string
 }
 
+fn (mut pc PkgConfig) filters(s string) []string {
+	r := pc.filter(s).split(' ')
+	mut res := []string{}
+	for a in r {
+		if a != '' {
+			res << a
+		}
+	}
+	return res
+}
+
 fn (mut pc PkgConfig) filter(s string) string {
 	mut r := s.trim_space()
 	for r.contains('\${') {
@@ -85,18 +96,18 @@ fn (mut pc PkgConfig) parse(file string) bool {
 			}
 			if line.starts_with('Description: ') {
 				pc.description = pc.filter(line[13..])
-			} else if line.starts_with('Cflags: ') {
-				pc.cflags = pc.filter(line[8..]).split(' ')
-			} else if line.starts_with('Libs: ') {
-				pc.libs = pc.filter(line[6..]).split(' ')
-			} else if line.starts_with('Libs.private: ') {
-				pc.libs_private = pc.filter(line[14..]).split(' ')
 			} else if line.starts_with('Name: ') {
 				pc.name = pc.filter(line[6..])
 			} else if line.starts_with('Version: ') {
 				pc.version = pc.filter(line[9..])
 			} else if line.starts_with('Requires: ') {
-				pc.requires = pc.filter(line[10..]).split(' ')
+				pc.requires = pc.filters(line[10..])
+			} else if line.starts_with('Cflags: ') {
+				pc.cflags = pc.filters(line[8..])
+			} else if line.starts_with('Libs: ') {
+				pc.libs = pc.filters(line[6..])
+			} else if line.starts_with('Libs.private: ') {
+				pc.libs_private = pc.filters(line[14..])
 			}
 		}
 	}
