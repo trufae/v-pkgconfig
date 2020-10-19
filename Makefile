@@ -1,18 +1,18 @@
 PREFIX?=/usr/local
 
-all: main
+all: bin/pkgconfig
 
-main: main.v pkgconfig/lib.v
-	v main.v
+bin/pkgconfig: bin/pkgconfig.v lib.v
+	v bin/pkgconfig.v
 
-prod:
-	v -prod main.v
+prod: bin/pkgconfig.v lib.v
+	v -prod bin/pkgconfig.v
 
 test:
-	./main --cflags --description r_core
+	./bin/pkgconfig --cflags --description r_core
 
-install: main
-	cp -f main $(PREFIX)/bin/pkgconfig
+install: bin/pkgconfig
+	cp -f bin/pkgconfig $(PREFIX)/bin/pkgconfig
 
 pinstall: prod
 	$(MAKE) install
@@ -21,7 +21,7 @@ uninstall:
 	rm -f $(PREFIX)/bin/pkgconfig
 
 clean:
-	rm -f main
+	rm -f bin/pkgconfig
 
 fmt:
-	v fmt -w main.v pkgconfig/lib.v
+	v fmt -w lib.v bin/pkgconfig.v
