@@ -2,6 +2,7 @@ module main
 
 import os
 import flag
+import strings
 import pkgconfig
 
 struct Main {
@@ -26,6 +27,7 @@ struct Options {
 	cflags            bool
 	cflags_only_path  bool
 	cflags_only_other bool
+	stat1c            bool
 	libs              bool
 	libs_only_link    bool
 	libs_only_path    bool
@@ -48,9 +50,7 @@ fn main() {
 }
 
 fn desc(mod string) ?string {
-	options := pkgconfig.Options{
-	//	debug: opt.debug
-	}
+	options := pkgconfig.Options{norecurse: true}
 	mut pc := pkgconfig.load(mod, options) or {
 		return error('cannot parse')
 	}
@@ -77,7 +77,8 @@ fn pkgconfig_main(args []string) ?&Main {
 				d := desc(mod) or {
 					continue
 				}
-				m.res += '$mod \t $d\n'
+				pad := strings.repeat(` `, 20-mod.len)
+				m.res += '$mod $pad $d\n'
 			}
 		} else {
 			m.res = modules.join('\n')
@@ -92,7 +93,7 @@ fn (mut m Main) run() ?string {
 	options := pkgconfig.Options{
 		debug: m.opt.debug
 	}
-	//m.opt = options
+	// m.opt = options
 	opt := m.opt
 	mut pc := &pkgconfig.PkgConfig(0)
 	mut res := m.res
@@ -157,7 +158,11 @@ fn (mut m Main) run() ?string {
 		res += filter(pc.libs, '-l', '-L')
 	}
 	if opt.libs {
-		res += pc.libs.join(' ')
+		if opt.stat1c {
+			res += pc.libs_private.join(' ')
+		} else {
+			res += pc.libs.join(' ')
+		}
 	}
 	if opt.modversion {
 		res = pc.version
@@ -194,11 +199,12 @@ fn parse_options(mut fp flag.FlagParser) &Options {
 		variables: fp.bool('print-variables', `V`, false, 'display variable names')
 		requires: fp.bool('print-requires', `r`, false, 'display requires of the module')
 		atleast: fp.string('atleast-version', `a`, '', 'return 0 if pkg version is at least the given one')
-		exactversion: fp.string('exact-version', `s`, '', 'return 0 if pkg version is at least the given one')
+		exactversion: fp.string('exact-version', ` `, '', 'return 0 if pkg version is at least the given one')
 		version: fp.bool('version', `v`, false, 'show version of this tool')
 		cflags: fp.bool('cflags', `c`, false, 'output all pre-processor and compiler flags')
 		cflags_only_path: fp.bool('cflags-only-I', `I`, false, 'show only -I flags from CFLAGS')
 		cflags_only_other: fp.bool('cflags-only-other', ` `, false, 'show cflags without -I')
+		stat1c: fp.bool('static', `s`, false, 'show --libs for static linking')
 		libs: fp.bool('libs', `l`, false, 'output all linker flags')
 		libs_only_link: fp.bool('libs-only-l', ` `, false, 'show only -l from ldflags')
 		libs_only_path: fp.bool('libs-only-L', `L`, false, 'show only -L from ldflags')

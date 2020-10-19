@@ -13,14 +13,16 @@ const (
 
 pub struct Options {
 pub:
-	path  string
-	debug bool
+	path      string
+	debug     bool
+	norecurse bool
 }
 
 pub struct PkgConfig {
 pub mut:
 	options     Options
 	libs        []string
+	libs_private []string
 	cflags      []string
 	paths       []string // TODO: move to options?
 	vars        map[string]string
@@ -37,9 +39,10 @@ fn (mut pc PkgConfig) filter(s string) string {
 		tok0 := r.index('\${') or {
 			break
 		}
-		tok1 := r.index('}') or {
+		mut tok1 := r[tok0..].index('}') or {
 			break
 		}
+		tok1 += tok0
 		v := r[tok0 + 2..tok1]
 		r = r.replace('\${$v}', pc.vars[v])
 	}
@@ -63,27 +66,38 @@ fn (mut pc PkgConfig) parse(file string) bool {
 		eprintln(data)
 	}
 	lines := data.split('\n')
-	for line in lines {
-		if line.starts_with('#') {
-			continue
+	if pc.options.norecurse {
+		// 2x faster than original pkg-config for --list-all --description
+		// TODO: use different variable. norecurse have nothing to do with this
+		for line in lines {
+			if line.starts_with('Description: ') {
+				pc.description = pc.filter(line[13..])
+			}
 		}
-		parse_vars := line.contains('=') && !line.contains(' ')
-		if parse_vars {
-			pc.setvar(line)
-			continue
-		}
-		if line.starts_with('Description: ') {
-			pc.description = pc.filter(line[13..])
-		} else if line.starts_with('Cflags: ') {
-			pc.cflags = pc.filter(line[8..]).split(' ')
-		} else if line.starts_with('Libs: ') {
-			pc.libs = pc.filter(line[6..]).split(' ')
-		} else if line.starts_with('Name: ') {
-			pc.name = pc.filter(line[6..])
-		} else if line.starts_with('Version: ') {
-			pc.version = pc.filter(line[9..])
-		} else if line.starts_with('Requires: ') {
-			pc.requires = pc.filter(line[10..]).split(' ')
+	} else {
+		for line in lines {
+			if line.starts_with('#') {
+				continue
+			}
+			if line.contains('=') && !line.contains(' ') {
+				pc.setvar(line)
+				continue
+			}
+			if line.starts_with('Description: ') {
+				pc.description = pc.filter(line[13..])
+			} else if line.starts_with('Cflags: ') {
+				pc.cflags = pc.filter(line[8..]).split(' ')
+			} else if line.starts_with('Libs: ') {
+				pc.libs = pc.filter(line[6..]).split(' ')
+			} else if line.starts_with('Libs.private: ') {
+				pc.libs_private = pc.filter(line[14..]).split(' ')
+			} else if line.starts_with('Name: ') {
+				pc.name = pc.filter(line[6..])
+			} else if line.starts_with('Version: ') {
+				pc.version = pc.filter(line[9..])
+			} else if line.starts_with('Requires: ') {
+				pc.requires = pc.filter(line[10..]).split(' ')
+			}
 		}
 	}
 	return true
@@ -114,13 +128,18 @@ pub fn (mut pc PkgConfig) atleast(v string) bool {
 
 pub fn (mut pc PkgConfig) extend(pcdep &PkgConfig) ?string {
 	for flag in pcdep.cflags {
-		if !(flag in pc.cflags) {
+		if pc.cflags.index(flag) == -1 {
 			pc.cflags << flag
 		}
 	}
 	for lib in pcdep.libs {
-		if !(lib in pc.libs) {
+		if pc.libs.index(lib) == -1 {
 			pc.libs << lib
+		}
+	}
+	for lib in pcdep.libs_private {
+		if pc.libs_private.index(lib) == -1 {
+			pc.libs_private << lib
 		}
 	}
 }
@@ -172,11 +191,14 @@ pub fn load(pkgname string, options Options) ?&PkgConfig {
 		return error(err)
 	}
 	pc.parse(file)
-/*
+	/*
 	if pc.name != pc.modname {
 		eprintln('Warning: modname and filename differ $pc.name $pc.modname')
 	}
-*/
+	*/
+	if options.norecurse {
+		return pc
+	}
 	pc.load_requires()
 	return pc
 }

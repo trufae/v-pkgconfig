@@ -6,6 +6,7 @@ This module implements the `pkg-config` tool as a library in pure V.
 Features:
 
 * Simple API, but still not stable, but shouldnt change much
+* Runs 2x faster than original pkg-config
 * Commandline tool that aims to be compatible with `pkg-config`
 * Resolve full path for `.pc` file given a name
 * Recursively parse all the dependencies
