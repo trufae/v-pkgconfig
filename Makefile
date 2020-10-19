@@ -2,7 +2,7 @@ PREFIX?=/usr/local
 
 all: main
 
-main: main.v
+main: main.v pkgconfig/lib.v
 	v main.v
 
 test:

@@ -33,22 +33,30 @@ struct Options {
 	args              []string
 }
 
-// UU main UU
 fn main() {
-	mut main := pkgconfig_main(os.args[1..]) or {
+	mut m := pkgconfig_main(os.args[1..]) or {
 		eprintln(err)
 		exit(1)
 	}
-	main.res = main.run() or {
+	m.res = m.run() or {
 		eprintln(err)
 		exit(1)
 	}
-	if main.res != '' {
-		println(main.res)
+	if m.res != '' {
+		println(m.res)
 	}
 }
 
-// OO main OO
+fn desc(mod string) ?string {
+	options := pkgconfig.Options{
+	//	debug: opt.debug
+	}
+	mut pc := pkgconfig.load(mod, options) or {
+		return error('cannot parse')
+	}
+	return pc.description
+}
+
 fn pkgconfig_main(args []string) ?&Main {
 	mut fp := flag.new_flag_parser(os.args[1..])
 	fp.application('pkgconfig')
@@ -62,7 +70,18 @@ fn pkgconfig_main(args []string) ?&Main {
 	} else if opt.version {
 		m.res = pkgconfig.version
 	} else if opt.listall {
-		m.res = pkgconfig.list().join('\n')
+		mut modules := pkgconfig.list()
+		modules.sort()
+		if opt.description {
+			for mod in modules {
+				d := desc(mod) or {
+					continue
+				}
+				m.res += '$mod \t $d\n'
+			}
+		} else {
+			m.res = modules.join('\n')
+		}
 	} else if opt.args.len == 0 {
 		return error('No packages given')
 	}
@@ -70,10 +89,11 @@ fn pkgconfig_main(args []string) ?&Main {
 }
 
 fn (mut m Main) run() ?string {
+	options := pkgconfig.Options{
+		debug: m.opt.debug
+	}
+	//m.opt = options
 	opt := m.opt
-	options := pkgconfig.Options{// path := '/usr/local/lib/pkgconfig', {
-		debug: opt.debug
-	}}
 	mut pc := &pkgconfig.PkgConfig(0)
 	mut res := m.res
 	for arg in opt.args {

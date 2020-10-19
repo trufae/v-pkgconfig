@@ -172,9 +172,11 @@ pub fn load(pkgname string, options Options) ?&PkgConfig {
 		return error(err)
 	}
 	pc.parse(file)
+/*
 	if pc.name != pc.modname {
 		eprintln('Warning: modname and filename differ $pc.name $pc.modname')
 	}
+*/
 	pc.load_requires()
 	return pc
 }
