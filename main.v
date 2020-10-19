@@ -51,12 +51,13 @@ fn main() {
 // OO main OO
 
 fn pkgconfig_main(args []string) ?&Main {
-	mut m := &Main{}
 	mut fp := flag.new_flag_parser(os.args[1..])
 	fp.application('pkgconfig')
 	fp.version(pkgconfig.version)
-	opt := parse_options(mut fp)
-	m.opt = opt
+	mut m := &Main{
+		opt: parse_options(mut fp)
+	}
+	opt := m.opt
 
 	if opt.help {
 		m.res = fp.usage().replace('- ,', '   ')
