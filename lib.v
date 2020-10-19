@@ -207,10 +207,9 @@ pub fn load(pkgname string, options Options) ?&PkgConfig {
 		eprintln('Warning: modname and filename differ $pc.name $pc.modname')
 	}
 	*/
-	if options.norecurse {
-		return pc
+	if !options.norecurse {
+		pc.load_requires()
 	}
-	pc.load_requires()
 	return pc
 }
 
