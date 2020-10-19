@@ -5,44 +5,48 @@ import os
 
 const (
 	default_paths = [
-		'/usr/local/lib/pkgconfig/'
-		'/usr/lib/pkgconfig/'
+		'/usr/local/lib/pkgconfig/',
+		'/usr/lib/pkgconfig/',
 	]
-	version = '0.2.0'
+	version       = '0.2.0'
 )
 
 pub struct Options {
 pub:
-	path string
+	path  string
 	debug bool
 }
 
 pub struct PkgConfig {
 pub mut:
-	options Options
-	libs []string
-	cflags []string
-	paths []string // TODO: move to options?
-	vars map[string]string
-	requires []string
-	version string
+	options     Options
+	libs        []string
+	cflags      []string
+	paths       []string // TODO: move to options?
+	vars        map[string]string
+	requires    []string
+	version     string
 	description string
-	name string
-	modname string
+	name        string
+	modname     string
 }
 
-fn (mut pc PkgConfig)filter(s string) string {
+fn (mut pc PkgConfig) filter(s string) string {
 	mut r := s.trim_space()
 	for r.contains('\${') {
-		tok0 := r.index('\${') or { break }
-		tok1 := r.index('}') or { break }
-		v := r[tok0 + 2 .. tok1]
+		tok0 := r.index('\${') or {
+			break
+		}
+		tok1 := r.index('}') or {
+			break
+		}
+		v := r[tok0 + 2..tok1]
 		r = r.replace('\${$v}', pc.vars[v])
 	}
 	return r.trim_space()
 }
 
-fn (mut pc PkgConfig)setvar(line string) {
+fn (mut pc PkgConfig) setvar(line string) {
 	kv := line.trim_space().split('=')
 	if kv.len == 2 {
 		k := kv[0]
@@ -51,7 +55,7 @@ fn (mut pc PkgConfig)setvar(line string) {
 	}
 }
 
-fn (mut pc PkgConfig)parse(file string) bool {
+fn (mut pc PkgConfig) parse(file string) bool {
 	data := os.read_file(file) or {
 		return false
 	}
@@ -85,20 +89,20 @@ fn (mut pc PkgConfig)parse(file string) bool {
 	return true
 }
 
-fn (mut pc PkgConfig)resolve(pkgname string) ?string {
+fn (mut pc PkgConfig) resolve(pkgname string) ?string {
 	if pc.paths.len == 0 {
 		pc.paths << '.'
 	}
 	for path in pc.paths {
-		file := '${path}/${pkgname}.pc'
+		file := '$path/${pkgname}.pc'
 		if os.exists(file) {
 			return file
 		}
 	}
-	return error('Cannot find "${pkgname}" pkgconfig file')
+	return error('Cannot find "$pkgname" pkgconfig file')
 }
 
-pub fn (mut pc PkgConfig)atleast(v string) bool {
+pub fn (mut pc PkgConfig) atleast(v string) bool {
 	v0 := semver.from(pc.version) or {
 		return false
 	}
@@ -108,22 +112,22 @@ pub fn (mut pc PkgConfig)atleast(v string) bool {
 	return v0.gt(v1)
 }
 
-pub fn (mut pc PkgConfig)extend(pcdep &PkgConfig) ?string {
+pub fn (mut pc PkgConfig) extend(pcdep &PkgConfig) ?string {
 	for flag in pcdep.cflags {
 		if !(flag in pc.cflags) {
 			pc.cflags << flag
 		}
 	}
 	for lib in pcdep.libs {
-		if !(lib in pc.libs ) {
+		if !(lib in pc.libs) {
 			pc.libs << lib
 		}
 	}
 }
 
-fn (mut pc PkgConfig)load_requires() {
+fn (mut pc PkgConfig) load_requires() {
 	for dep in pc.requires {
-		mut pcdep := PkgConfig {
+		mut pcdep := PkgConfig{
 			paths: pc.paths
 		}
 		depfile := pcdep.resolve(dep) or {
@@ -135,14 +139,14 @@ fn (mut pc PkgConfig)load_requires() {
 	}
 }
 
-fn (mut pc PkgConfig)add_path(path string) {
-	p := if path.ends_with('/') { path[0..path.len-1] } else { path }
+fn (mut pc PkgConfig) add_path(path string) {
+	p := if path.ends_with('/') { path[0..path.len - 1] } else { path }
 	if pc.paths.index(p) == -1 {
 		pc.paths << p
 	}
 }
 
-fn (mut pc PkgConfig)load_paths() {
+fn (mut pc PkgConfig) load_paths() {
 	for path in default_paths {
 		pc.add_path(path)
 	}
@@ -159,12 +163,11 @@ fn (mut pc PkgConfig)load_paths() {
 }
 
 pub fn load(pkgname string, options Options) ?&PkgConfig {
-	mut pc := &PkgConfig {
+	mut pc := &PkgConfig{
 		modname: pkgname
 		options: options
 	}
 	pc.load_paths()
-
 	file := pc.resolve(pkgname) or {
 		return error(err)
 	}
@@ -177,7 +180,7 @@ pub fn load(pkgname string, options Options) ?&PkgConfig {
 }
 
 pub fn list() []string {
-	mut pc := &PkgConfig {
+	mut pc := &PkgConfig{
 		options: Options{}
 	}
 	pc.load_paths()

@@ -6,33 +6,32 @@ import pkgconfig
 
 struct Main {
 mut:
-	opt &Options
-	res string
+	opt         &Options
+	res         string
 	has_actions bool
 }
 
 struct Options {
-	modversion bool
-	description bool
-	help       bool
-	debug      bool
-	listall    bool
-	exists     bool
-	variables  bool
-	requires   bool
-	atleast    string
-	exactversion string
-	version    bool
-	cflags     bool
-	cflags_only_path     bool
+	modversion        bool
+	description       bool
+	help              bool
+	debug             bool
+	listall           bool
+	exists            bool
+	variables         bool
+	requires          bool
+	atleast           string
+	exactversion      string
+	version           bool
+	cflags            bool
+	cflags_only_path  bool
 	cflags_only_other bool
-	libs       bool
-	libs_only_link  bool
-	libs_only_path  bool
-	libs_only_other bool
-	args       []string
+	libs              bool
+	libs_only_link    bool
+	libs_only_path    bool
+	libs_only_other   bool
+	args              []string
 }
-
 
 // UU main UU
 fn main() {
@@ -48,8 +47,8 @@ fn main() {
 		println(main.res)
 	}
 }
-// OO main OO
 
+// OO main OO
 fn pkgconfig_main(args []string) ?&Main {
 	mut fp := flag.new_flag_parser(os.args[1..])
 	fp.application('pkgconfig')
@@ -58,7 +57,6 @@ fn pkgconfig_main(args []string) ?&Main {
 		opt: parse_options(mut fp)
 	}
 	opt := m.opt
-
 	if opt.help {
 		m.res = fp.usage().replace('- ,', '   ')
 	} else if opt.version {
@@ -71,12 +69,11 @@ fn pkgconfig_main(args []string) ?&Main {
 	return m
 }
 
-fn (mut m Main)run() ?string {
+fn (mut m Main) run() ?string {
 	opt := m.opt
-	options := pkgconfig.Options {
-		// path := '/usr/local/lib/pkgconfig'
+	options := pkgconfig.Options{// path := '/usr/local/lib/pkgconfig', {
 		debug: opt.debug
-	}
+	}}
 	mut pc := &pkgconfig.PkgConfig(0)
 	mut res := m.res
 	for arg in opt.args {
@@ -167,25 +164,25 @@ fn filter(libs []string, prefix string, prefix2 string) string {
 }
 
 fn parse_options(mut fp flag.FlagParser) &Options {
-	return &Options {
+	return &Options{
 		description: fp.bool('description', `d`, false, 'show pkg module description')
-		modversion:  fp.bool('modversion', `V`, false, 'show version of module')
-		help:        fp.bool('help', `h`, false, 'show this help message')
-		debug:       fp.bool('debug', `D`, false, 'show debug information')
-		listall:     fp.bool('list-all', `l`, false, 'list all pkgmodules')
-		exists:      fp.bool('exists', `e`, false, 'return 0 if pkg exists')
-		variables:   fp.bool('print-variables', `V`, false, 'display variable names')
-		requires:    fp.bool('print-requires', `r`, false, 'display requires of the module')
-		atleast:     fp.string('atleast-version', `a`, '', 'return 0 if pkg version is at least the given one')
-		exactversion:fp.string('exact-version', `s`, '', 'return 0 if pkg version is at least the given one')
-		version:     fp.bool('version', `v`, false, 'show version of this tool')
-		cflags:      fp.bool('cflags', `c`, false, 'output all pre-processor and compiler flags')
+		modversion: fp.bool('modversion', `V`, false, 'show version of module')
+		help: fp.bool('help', `h`, false, 'show this help message')
+		debug: fp.bool('debug', `D`, false, 'show debug information')
+		listall: fp.bool('list-all', `l`, false, 'list all pkgmodules')
+		exists: fp.bool('exists', `e`, false, 'return 0 if pkg exists')
+		variables: fp.bool('print-variables', `V`, false, 'display variable names')
+		requires: fp.bool('print-requires', `r`, false, 'display requires of the module')
+		atleast: fp.string('atleast-version', `a`, '', 'return 0 if pkg version is at least the given one')
+		exactversion: fp.string('exact-version', `s`, '', 'return 0 if pkg version is at least the given one')
+		version: fp.bool('version', `v`, false, 'show version of this tool')
+		cflags: fp.bool('cflags', `c`, false, 'output all pre-processor and compiler flags')
 		cflags_only_path: fp.bool('cflags-only-I', `I`, false, 'show only -I flags from CFLAGS')
 		cflags_only_other: fp.bool('cflags-only-other', ` `, false, 'show cflags without -I')
-		libs:        fp.bool('libs', `l`, false, 'output all linker flags')
+		libs: fp.bool('libs', `l`, false, 'output all linker flags')
 		libs_only_link: fp.bool('libs-only-l', ` `, false, 'show only -l from ldflags')
 		libs_only_path: fp.bool('libs-only-L', `L`, false, 'show only -L from ldflags')
 		libs_only_other: fp.bool('libs-only-other', ` `, false, 'show flags not containing -l or -L')
-		args:        fp.args
+		args: fp.args
 	}
 }
