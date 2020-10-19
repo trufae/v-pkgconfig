@@ -59,7 +59,7 @@ fn pkgconfig_main(args []string) ?&Main {
 	m.opt = opt
 
 	if opt.help {
-		m.res = fp.usage()
+		m.res = fp.usage().replace('- ,', '   ')
 	} else if opt.version {
 		m.res = pkgconfig.version
 	} else if opt.listall {

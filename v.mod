@@ -5,6 +5,7 @@ Module {
 	repo_url: 'https://github.com/trufae/v-pkgconfig'
 	vcs: 'git'
 	tags: ['system', 'compilers']
+	dependencies: ['alexesprit.semver']
 	description: 'V API implementing pkg-config logic'
 	license: 'MIT'
 }
