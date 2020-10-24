@@ -1,6 +1,5 @@
 module pkgconfig
 
-import os
 import flag
 import strings
 
@@ -44,7 +43,7 @@ fn desc(mod string) ?string {
 }
 
 pub fn main(args []string) ?&Main {
-	mut fp := flag.new_flag_parser(os.args[1..])
+	mut fp := flag.new_flag_parser(args)
 	fp.application('pkgconfig')
 	fp.version(pkgconfig.version)
 	mut m := &Main{
